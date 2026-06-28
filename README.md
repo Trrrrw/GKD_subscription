@@ -100,7 +100,7 @@ export default defineGkdSubscription({
 构建后订阅将输出到 dist 目录下, gkd.json 的文件订阅地址如下, 复制后到 GKD 添加即可
 
 ```txt
-https://raw.githubusercontent.com/username/subscription/main/dist/gkd.json5
+https://raw.githubusercontent.com/Trrrrw/GKD_subscription/main/dist/gkd.json5
 ```
 
 ## 镜像加速
