@@ -1,0 +1,4 @@
+interface:
+  display_name: "GKD Git Publish"
+  short_description: "Commit source changes and let Actions build dist."
+  default_prompt: "Prepare, verify, commit, and push GKD subscription source changes while excluding generated dist files unless requested."

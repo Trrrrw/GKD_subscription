@@ -1,166 +1,305 @@
-# subscription-template
+# GKD Subscription
 
-GKD 订阅模板, 此仓库方便您直接构建自己订阅, 点击右上角 [Use this template](https://github.com/new?template_name=subscription-template&template_owner=gkd-kit) 即可使用
+一个用于维护个人 [GKD](https://gkd.li) 订阅的仓库。规则源码写在 `src/`，GKD 快照压缩包放在 `snapshots/`，可以让 AI 根据项目内 skills 从快照生成规则，再通过 GitHub Actions 生成最终的 `dist/gkd.json5` 订阅文件。
 
-## 配置环境
+## 1. Fork 仓库
 
-请安装最新版 nodejs 和 pnpm 运行, 以及使用 vscode 打开项目
+先在 GitHub 上 Fork 本仓库到自己的账号下。
 
-> [!IMPORTANT]
-> 选择器需要使用 nodejs@22 的 WasmGc 来校验 Java/Kotlin 正则表达式, 确保使用 nodejs>=22
-
-- nodejs>=**22** <https://nodejs.org/en/download>
-- pnpm>=9 <https://pnpm.io/zh/installation>
-- vscode <https://code.visualstudio.com>
-
-安装好后使用模板, 假设您刚刚使用 `Use this template` 创建的仓库是 `https://github.com/username/subscription`
-
-接下来下载并初始化环境
+Fork 后，后续命令里的仓库地址请换成你自己的仓库地址：
 
 ```shell
-git clone https://github.com/username/subscription
-cd subscription
+git clone https://github.com/<你的用户名>/GKD_subscription.git
+cd GKD_subscription
+```
+
+## 2. 准备环境
+
+需要安装：
+
+- Node.js >= 22: <https://nodejs.org/en/download>
+- pnpm >= 9: <https://pnpm.io/zh/installation>
+- Python >= 3.10: <https://www.python.org/downloads/>
+- 推荐安装 uv: <https://docs.astral.sh/uv/>
+
+> [!IMPORTANT]
+> GKD 选择器校验需要 Node.js 22 及以上版本。
+
+安装依赖：
+
+```shell
 pnpm install
 ```
 
-如果因为网络问题安装失败, 将上面的 `pnpm install` 换成下面命令使用 阿里镜像源 重新安装即可
+如果网络不稳定，可以使用镜像源：
 
-```sh
+```shell
 pnpm install --registry=https://registry.npmmirror.com
 ```
 
-![image](https://e.gkd.li/33bb6379-2fae-4139-abc3-6250a287ad84)
+## 3. 检查订阅信息
 
-至此环境已在 `subscription` 目录下初始化完毕, 使用 vscode 打开目录即可开始开发
-
-接下来下面所有的示例链接都基于 `username/subscription`, 请自行替换后打开
-
-`pnpm install` 用于安装依赖, 如果您的 [./package.json](./package.json) 发生变化, 则需要再次运行 `pnpm install`
-
----
-
-如果您无法初始化 nodejs 环境, 那可以直接使用 github 网页编辑文件后在线提交, 点击下面链接即可在线编辑
-
-<https://github.com/username/subscription/edit/main/src/subscription.ts>
-
-![image](https://e.gkd.li/bb539a50-cbdb-4fec-8a93-4a9c5d067de0)
-
-## 目录结构
-
-- 订阅详情 [./src/subscription.ts](./src/subscription.ts)
-- 全局规则 [./src/globalGroups.ts](./src/globalGroups.ts)
-- 规则分类 [./src/categories.ts](./src/categories.ts)
-- 应用规则 [./src/apps](./src/apps/)
-
-在 vscode 内使用鼠标悬浮在任意字段上即可查看注释说明, 也可在 <https://gkd.li/api> 搜索查看
-
-![image](https://e.gkd.li/3b3c8b14-f7f4-46ee-90dc-b69b9233f993)
-
-现在您可编辑 [./src](./src/) 下的文件来自定义您的订阅, 构建后的订阅文件处于 [./dist](./dist/) 目录下
-
-另外您必须修改 订阅详情 [./src/subscription.ts](./src/subscription.ts) 下的 id 字段, 否则可能会和其它订阅冲突, 填一个较大的随机数字即可
-
-可以在 github 查找下方代码块 ([快捷链接](https://github.com/search?q=export+default+defineGkdSubscription%28%7B+++id%3A+&type=code)), 查看您的订阅id是否跟已有项目重复
+打开 `src/subscription.ts`，按需要修改：
 
 ```ts
 export default defineGkdSubscription({
-  id:
+  id: 233,
+  name: "Trrrrw's Subscription",
+  author: 'Trrrrw',
+});
 ```
 
-## 格式修复
+如果你把这个仓库作为自己的订阅使用，建议至少修改：
 
-我们使用 [prettier](https://github.com/prettier/prettier) 来格式化代码 和 [eslint](https://github.com/eslint/eslint) 来检测并修复代码错误
+- `id`：订阅唯一 ID。
+- `name`：订阅名称。
+- `author`：作者名。
+- `supportUri`：你的仓库地址或反馈地址。
 
-同时使用 [simple-git-hooks](https://github.com/toplenboren/simple-git-hooks) 在您提交代码时运行格式化和代码检测修复脚本
+## 4. 选择是否保留已有规则
 
-当您的代码存在错误时, 它会阻止您提交代码并输出具体错误以供您手动修复后再次提交
-
-当提交代码到仓库时, 我们也需要使用 github actions 来帮助自动格式化并修复代码, 因此您需要开启仓库的此项权限
-
-打开 <https://github.com/username/subscription/settings/actions>
-
-然后找到 Workflow permissions 点击 Read and write permissions 然后点击下方的 Save 即可
-
-![image](https://e.gkd.li/89dd8c22-f3f0-4331-a3d1-03d466dcc3d6)
-
-## 构建订阅
-
-我们需要将 [./src](./src/) 分散的文件合并为一个 gkd.json5 的最终订阅文件并输出到 [./dist](./dist/) 目录下
-
-推荐使用 github actions 进行构建, 在 [./.github/workflows](./.github/workflows) 下有 3 个工作流
-
-我们使用其中的 `build_release.yml` 构建并发布
-
-打开 <https://github.com/username/subscription/actions/workflows/build_release.yml>
-
-然后点击右侧的 `Run workflow` 即可运行并发布
-
-![image](https://e.gkd.li/ab202786-d56d-4dba-a5ee-03190aafb6e6)
-
-构建后订阅将输出到 dist 目录下, gkd.json 的文件订阅地址如下, 复制后到 GKD 添加即可
+应用规则都在：
 
 ```txt
-https://raw.githubusercontent.com/Trrrrw/GKD_subscription/main/dist/gkd.json5
+src/apps/
 ```
 
-## 镜像加速
+每个应用一个文件，文件名通常是应用包名：
 
-raw.githubusercontent.com 在大陆的访问常常无法访问
-
-您可以换成 <https://fastly.jsdelivr.net/gh/username/subscription@main/dist/gkd.json5> 加速访问
-
-如果无法访问 raw.githubusercontent.com 和 fastly.jsdelivr.net
-
-请自行解决网络问题
-
-## 自定义配置文件
-
-注意: **大多数情况下, 你不需要自定义, 使用默认配置时, 下面此节教程无需了解**
-
-你可以在 [./package.json](./package.json) 下添加 gkd 属性配置自定义构建选项
-
-```json
-{
-  "gkd": {
-    "outDir": "dist",
-    "file": "gkd.json5",
-    "versionFile": "gkd.version.json5",
-    "changelog": "CHANGELOG.md",
-    "README.md": "README.md"
-  }
-}
+```txt
+src/apps/com.zhihu.android.ts
+src/apps/tv.danmaku.bili.ts
 ```
 
-这个 gkd 属性的类型如下
+如果你不需要本仓库已有规则，可以删除对应文件；如果要继续使用，就保留。
+
+## 5. 放入 GKD 快照
+
+在手机 GKD 中对目标页面导出快照，保留原始 zip 文件。
+
+把 zip 放到：
+
+```txt
+snapshots/
+```
+
+zip 内通常包含：
+
+```txt
+snapshot.json
+screenshot.png
+```
+
+不需要手动解压，AI 会读取 zip 中的 JSON 快照。
+
+## 6. 让 AI 生成规则
+
+本仓库提供了项目内 skills：
+
+```txt
+.codex/skills/gkd-snapshot-rule
+.codex/skills/gkd-git-publish
+```
+
+生成规则时，可以直接复制下面的提示词：
+
+```txt
+使用项目内 skill .codex/skills/gkd-snapshot-rule，
+根据 snapshots/示例.zip 生成或更新对应的 GKD 规则。
+完成后运行 pnpm run check。
+```
+
+更短的提示词也可以：
+
+```txt
+根据 snapshots/示例.zip 创建 GKD 规则
+```
+
+AI 应该完成这些事：
+
+1. 从 zip 中读取 JSON 快照。
+2. 读取 `appId`、`activityId`、`appInfo.name` 和节点信息。
+3. 找到或创建 `src/apps/<包名>.ts`。
+4. 根据可点击的跳过、关闭等节点生成规则。
+5. 运行 `pnpm run check`。
+
+生成的规则大致长这样：
 
 ```ts
-/**
- * @default package.json.gkd
- */
-type GkdConfig = {
-  /**
-   * @default 'dist'
-   */
-  outDir?: string;
-  /**
-   * @default 'gkd.json5'
-   */
-  file?: string;
-  /**
-   * @default 'gkd.version.json5'
-   */
-  versionFile?: string;
-  /**
-   * @default 'CHANGELOG.md'
-   */
-  changelog?: string;
-  /**
-   * @default 'README.md'
-   */
-  readme?: string;
-};
+import { defineGkdApp } from '@gkd-kit/define';
+
+export default defineGkdApp({
+  id: 'com.example.app',
+  name: '示例应用',
+  groups: [
+    {
+      key: 1,
+      name: '开屏广告',
+      activityIds: 'com.example.app.SplashActivity',
+      rules: '[vid="skip"][text*="跳过"]',
+    },
+  ],
+});
 ```
 
-如果不想写配置文件, 也可以将这个参数直接传递给 `@gkd-kit/tools` 的 `updateDist` 函数
+## 7. 本地校验
 
-手动传递参数的时候, 你必须显式将路径(非文件名)参数传递给 [./.github/workflows/build_release.yml](./.github/workflows/build_release.yml) 下的 `updatePkgVersion` 和 `stdoutGkdVersion` 函数
+每次修改规则后运行：
+
+```shell
+pnpm run check
+```
+
+如果需要在本地生成订阅文件调试：
+
+```shell
+pnpm run build
+```
+
+生成结果：
+
+```txt
+dist/gkd.json5
+dist/gkd.version.json5
+```
+
+可以临时启动本地 HTTP 服务：
+
+```shell
+python -m http.server 8000 -d dist
+```
+
+然后在手机 GKD 中添加本地订阅地址：
+
+```txt
+http://<你的电脑局域网IP>:8000/gkd.json5
+```
+
+## 8. 推送源码到 GitHub
+
+本仓库约定 `dist/` 由 GitHub Actions 管理。本地调试产生的 `dist` 修改，不要直接提交。
+
+可以让 AI 使用项目内 skill 处理提交：
+
+```txt
+把代码推送到 GitHub
+```
+
+AI 应该执行的流程：
+
+1. 查看 `git status --short` 和 diff。
+2. 执行 `git restore -- dist`。
+3. 执行 `git pull --ff-only`，拉取 GitHub Actions 可能已经提交的 `dist/` 更新。
+4. 再次查看 `git status --short`，确认没有 `dist/` 文件。
+5. 如果 `dist/` 仍显示为本地修改，再执行一次 `git restore -- dist`。
+6. 检查是否有不应该提交的文件，例如 `.env`、私有日志、大文件、无关改动。
+7. 如果有可疑文件，停止并让用户决定。
+8. 没问题后执行 `git add .`。
+9. 运行 `pnpm run check`。
+10. 根据实际修改生成 commit message。
+11. 执行 `git commit` 和 `git push origin main`。
+
+手动执行也可以：
+
+```shell
+git restore -- dist
+git pull --ff-only
+git status --short
+git add .
+pnpm run check
+git commit -m "feat: add gkd rules"
+git push origin main
+```
+
+## 9. 运行 GitHub Actions 发布订阅
+
+推送源码后，在你的 GitHub 仓库中打开：
+
+```txt
+Actions -> build_release -> Run workflow
+```
+
+这个 workflow 会：
+
+1. 安装依赖。
+2. 运行 `pnpm run build`。
+3. 更新 `dist/gkd.json5`。
+4. 更新 `dist/gkd.version.json5`。
+5. 更新 `dist/README.md` 和 `dist/CHANGELOG.md`。
+6. 将构建结果提交回仓库。
+7. 创建 tag 和 release。
+
+订阅地址格式：
+
+```txt
+https://raw.githubusercontent.com/<你的用户名>/GKD_subscription/main/dist/gkd.json5
+```
+
+如果 raw.githubusercontent.com 访问不稳定，可以使用 jsDelivr：
+
+```txt
+https://fastly.jsdelivr.net/gh/<你的用户名>/GKD_subscription@main/dist/gkd.json5
+```
+
+## 目录结构
+
+```txt
+GKD_subscription/
+├─ .codex/
+│  └─ skills/
+│     ├─ gkd-git-publish/
+│     └─ gkd-snapshot-rule/
+├─ .github/
+│  └─ workflows/
+│     ├─ build_release.yml
+│     ├─ check_fix_push.yml
+│     └─ pull_request_check.yml
+├─ dist/
+│  ├─ CHANGELOG.md
+│  ├─ README.md
+│  ├─ gkd.json5
+│  └─ gkd.version.json5
+├─ scripts/
+│  ├─ build.ts
+│  └─ check.ts
+├─ snapshots/
+│  └─ *.zip
+├─ src/
+│  ├─ apps/
+│  │  └─ *.ts
+│  ├─ categories.ts
+│  ├─ globalGroups.ts
+│  └─ subscription.ts
+├─ package.json
+├─ pnpm-lock.yaml
+└─ README.md
+```
+
+## 版本号
+
+`dist/gkd.json5` 的 `version` 由构建脚本自动维护：
+
+- 第一次构建时，使用 `src/subscription.ts` 中的初始 `version`。
+- 如果订阅内容没有变化，构建输出 `No changes`，版本不变。
+- 如果订阅内容发生变化，版本自动在旧版本基础上加 1。
+
+通常不要手动修改 `dist/gkd.json5` 和 `dist/gkd.version.json5`。
+
+## 常用命令
+
+```shell
+pnpm run check
+pnpm run format
+pnpm run lint
+pnpm run build
+```
+
+`pnpm run check` 退出码为 0 时，即使出现 `@gkd-kit/api` 版本提示或 Node deprecation warning，通常也不影响当前规则校验。
+
+## 参考
+
+- GKD 官网：<https://gkd.li>
+- GKD API：<https://gkd.li/api>
+- Node.js：<https://nodejs.org/en/download>
+- pnpm：<https://pnpm.io/zh/installation>
+- uv：<https://docs.astral.sh/uv/>

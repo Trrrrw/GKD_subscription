@@ -1,0 +1,4 @@
+interface:
+  display_name: "GKD Snapshot Rule"
+  short_description: "Convert local GKD snapshots into app rule groups."
+  default_prompt: "Create or update a GKD app rule from a local snapshot JSON and validate the subscription."
