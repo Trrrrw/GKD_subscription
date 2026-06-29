@@ -2,6 +2,22 @@
 
 一个用于维护个人 [GKD](https://gkd.li) 订阅的仓库。规则源码写在 `src/`，GKD 快照压缩包放在 `snapshots/`，可以让 AI 根据项目内 skills 从快照生成规则，再通过 GitHub Actions 生成最终的 `dist/gkd.json5` 订阅文件。
 
+## 直接订阅
+
+如果只是想直接订阅当前项目，在 GKD 中添加：
+
+```txt
+https://raw.githubusercontent.com/Trrrrw/GKD_subscription/main/dist/gkd.json5
+```
+
+如果 raw.githubusercontent.com 访问不稳定，可以使用 jsDelivr：
+
+```txt
+https://fastly.jsdelivr.net/gh/Trrrrw/GKD_subscription@main/dist/gkd.json5
+```
+
+如果想维护自己的规则订阅，可以参考下面的步骤
+
 ## 1. Fork 仓库
 
 先在 GitHub 上 Fork 本仓库到自己的账号下。
