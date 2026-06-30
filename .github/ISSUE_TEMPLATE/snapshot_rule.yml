@@ -1,0 +1,66 @@
+name: 提交 GKD 快照规则
+description: 提交应用弹窗、开屏广告、关闭按钮等 GKD 快照
+title: "[规则提交] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请上传从 GKD 导出的原始 zip 快照文件，不要解压。公开 issue 中的附件可能被其他人访问，请先确认快照不包含敏感个人信息。
+
+  - type: input
+    id: app_name
+    attributes:
+      label: 应用名称
+      placeholder: 例如：菜鸟
+    validations:
+      required: true
+
+  - type: input
+    id: app_id
+    attributes:
+      label: 应用包名
+      placeholder: 例如：com.cainiao.wireless
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scene
+    attributes:
+      label: 规则场景
+      options:
+        - 开屏广告
+        - 首页弹窗广告
+        - 局部弹窗
+        - 关闭按钮
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 现象描述
+      description: 简单说明希望自动点击哪个按钮，例如“点击跳过”“关闭首页弹窗”。
+      placeholder: 进入应用后出现开屏广告，右上角有跳过按钮。
+    validations:
+      required: true
+
+  - type: upload
+    id: snapshot_zip
+    attributes:
+      label: GKD 快照 zip
+      description: 请上传从 GKD 导出的原始 zip 快照文件，不要解压。
+    validations:
+      required: true
+      accept: ".zip"
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认事项
+      options:
+        - label: 我确认上传的是 GKD 导出的原始 zip 快照。
+          required: true
+        - label: 我确认快照中不包含敏感个人信息，或已自行确认可以公开提交。
+          required: true
