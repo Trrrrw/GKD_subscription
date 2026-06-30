@@ -9,7 +9,7 @@ export default defineGkdSubscription({
   version: 0,
   author: 'Trrrrw',
   checkUpdateUrl: './gkd.version.json5',
-  supportUri: 'https://github.com/gkd-kit/subscription-template',
+  supportUri: 'https://github.com/Trrrrw/GKD_subscription',
   categories,
   globalGroups,
   apps: await batchImportApps(`${import.meta.dirname}/apps`),

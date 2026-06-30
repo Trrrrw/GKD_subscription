@@ -12,6 +12,7 @@ description: Convert a local GKD snapshot zip into an app rule in this subscript
    - Each raw snapshot zip is expected to contain exactly one `.json` snapshot and one `.png` screenshot.
    - For Chinese or URL-encoded paths, prefer locating by the final zip filename or snapshot id:
      `Get-ChildItem snapshots -Recurse -Filter *.zip`.
+   - When the user says "these snapshots" or gives no exact path, enumerate all `snapshots/**/*.zip` and process each zip.
    - Extract with Python standard library `zipfile` instead of 7z, so the workflow does not depend on a locally installed archive tool.
    - Use any available Python runner. Prefer `python`; use `uv run python` when the environment is managed by uv.
    - Extract to a temporary directory, read the JSON, then remove the temp directory:
@@ -36,6 +37,8 @@ Remove-Item -LiteralPath $tmp -Recurse -Force
    - `activityId`: screen restriction for the rule.
    - `appInfo.name`: app display name if a new app file is needed.
    - `nodes`: candidate UI nodes.
+   - Inspect the actual node shape before filtering. In current GKD snapshots, UI fields often live under `node.attr`, for example `node.attr.vid`, `node.attr.text`, `node.attr.desc`, `node.attr.clickable`, `node.attr.visibleToUser`, and bounds fields.
+   - Print visible nodes with `id`, `pid`, `attr.vid`, `attr.text`, `attr.desc`, `attr.name`, `attr.clickable`, bounds, `childCount`, and `depth` when the first candidate scan is empty.
 3. Locate the app config at `src/apps/<appId>.ts`.
    - Always trust snapshot `appId` for the target file, not the human app name or previous conversation context.
    - If it exists, update that file only.
@@ -43,7 +46,9 @@ Remove-Item -LiteralPath $tmp -Recurse -Force
 4. Identify the action target from `nodes`.
    - Prefer clickable nodes with stable `vid`.
    - For skip buttons, prefer the clickable node whose text/desc contains `跳过`, for example `[vid="count_down"][text*="跳过"]`.
+   - If a skip label has no stable `vid` and is not clickable, use a nearby stable splash/ad container as a guard in `matches`, then click the text node, for example `matches: ['[vid="homesplash"]', '[text="跳过"]']`.
    - For close buttons, prefer ids like `close`, `close_img`, `iv_close`, or desc/text `关闭`.
+   - For homepage popups, add a guard from the same popup when available, such as `desc="广告弹窗"`, `text="广告"`, popup title text, or an ad container `vid`; make the close/skip target the last `matches` item.
    - Avoid coordinate-only rules unless there is no stable id/text/desc.
 5. Classify the scenario before editing:
    - `开屏广告`: startup/splash pages, countdown skip buttons, full-screen ad containers.
@@ -56,6 +61,7 @@ Remove-Item -LiteralPath $tmp -Recurse -Force
    - Use a concise user-facing `name`, for example `开屏广告` or `首页弹窗广告`.
 7. Run `pnpm run check`.
    - Fix TypeScript or selector errors.
+   - If `pnpm run check` fails because `node_modules` is missing or incomplete, run `$env:CI='true'; pnpm install` in PowerShell, then retry. This avoids pnpm aborting removal of `node_modules` in a non-interactive shell.
    - Treat dependency version warnings as non-blocking unless the user asked to upgrade.
 
 ## Rule Pattern
