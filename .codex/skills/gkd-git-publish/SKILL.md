@@ -1,6 +1,6 @@
 ---
 name: gkd-git-publish
-description: Prepare and publish local changes for this GKD subscription project. Use when the user wants to commit or push rule/source changes to GitHub while keeping dist fully managed by GitHub Actions; restore local dist changes, pull remote Action-generated dist updates with git pull --ff-only before staging, inspect git status before git add ., stop for user decision if unrelated or unsafe files would be staged, generate the commit message from the actual diff, run pnpm run check, commit, and push.
+description: Prepare and publish local changes for this GKD subscription project. Use when the user wants to commit, push, or release rule/source changes to GitHub while keeping dist fully managed by GitHub Actions; restore local dist changes, pull remote Action-generated dist updates with git pull --ff-only before staging, inspect git status before git add ., stop for user decision if unrelated or unsafe files would be staged, generate the commit message from the actual diff, run pnpm run check, commit, push, trigger build_release only when src changes, wait for it, and pull the Action-generated dist commit.
 ---
 
 # GKD Git Publish
@@ -76,9 +76,54 @@ git push origin main
 
 If hooks run `pnpm run check`, report pass/fail from the hook output.
 
-9. Tell the user to run the publishing action after push:
-   - GitHub `Actions -> build_release -> Run workflow`
-   - That action runs `pnpm run build`, updates `dist/gkd.json5`, `dist/gkd.version.json5`, `dist/README.md`, `dist/CHANGELOG.md`, commits them back, and creates a release/tag when configured.
+9. Decide whether the publishing action is needed after push.
+   - `build_release` runs `pnpm run build`, and `scripts/build.ts` builds `dist` from `src/subscription.ts` and files imported under `src/`.
+   - Trigger `build_release` only when this source commit changed `src/**`.
+   - Skip `build_release` when the commit only changed docs, `.codex/` skills, README, snapshots, workflow docs, or other files outside `src/`.
+   - Determine this from the committed diff, for example:
+
+```powershell
+git diff --name-only HEAD~1 HEAD
+```
+
+   - If no changed path starts with `src/`, stop the release portion and report that no dist rebuild was needed.
+
+10. Trigger the publishing action when `src/**` changed.
+   - Prefer `gh` CLI because this workflow is already authenticated on the maintainer machine.
+   - First confirm access and workflow availability when needed:
+
+```powershell
+gh auth status
+gh workflow list
+```
+
+   - Run:
+
+```powershell
+gh workflow run build_release --ref main
+gh run list --workflow build_release --limit 3
+```
+
+   - Identify the newest `workflow_dispatch` run ID, then wait for it:
+
+```powershell
+gh run watch <run-id> --exit-status
+```
+
+   - If the run fails, report the failed job/step and stop. Do not retry blindly.
+   - Treat GitHub Actions warnings about Node deprecations or `set-output` as non-blocking when the run exits successfully.
+   - The action runs `pnpm run build`, updates `dist/gkd.json5`, `dist/gkd.version.json5`, `dist/README.md`, `dist/CHANGELOG.md`, commits them back, and creates a release/tag when configured.
+
+11. Pull the Action-generated commit after a successful release run:
+
+```powershell
+git pull --ff-only
+git status --short
+git log --oneline -3
+```
+
+   - If the pull fails, stop and report the reason. Do not merge, rebase, or force-push unless the user explicitly asks.
+   - If `git status --short` is clean after the pull, report that the local checkout is synced with the released version.
 
 ## Guardrails
 
@@ -87,7 +132,9 @@ If hooks run `pnpm run check`, report pass/fail from the hook output.
 - Do not stage or commit local `dist/` changes in the normal publish flow.
 - Pull remote updates with `git pull --ff-only` before staging so local history includes Action-generated `dist/` commits.
 - Do not run `git add .` until the status has been inspected and no suspicious files remain.
-- If `git status --short` is clean after push, say so.
+- Do not trigger `build_release` until the source commit has been pushed to `origin/main` and its committed diff includes `src/**`.
+- If `gh auth status` is not authenticated or lacks `workflow` permission, stop and tell the user to trigger GitHub `Actions -> build_release -> Run workflow` manually.
+- If `git status --short` is clean after the final post-release pull, say so.
 
 ## Expected Response
 
@@ -98,4 +145,6 @@ Summarize:
 - What files were committed.
 - The generated commit message.
 - Whether `pnpm run check`, `git commit`, and `git push` succeeded.
-- The next GitHub Action step to generate and commit `dist`.
+- Whether `build_release` was triggered and completed successfully, or skipped because no `src/**` files changed.
+- The Action-generated version commit/tag when available.
+- Whether the post-release `git pull --ff-only` succeeded and the working tree is clean.

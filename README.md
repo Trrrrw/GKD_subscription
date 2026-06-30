@@ -37,6 +37,7 @@ cd GKD_subscription
 - pnpm >= 9: <https://pnpm.io/zh/installation>
 - Python >= 3.10: <https://www.python.org/downloads/>
 - 推荐安装 uv: <https://docs.astral.sh/uv/>
+- 可选安装 GitHub CLI，用于让 AI 自动触发发布 Action: <https://cli.github.com/>
 
 > [!IMPORTANT]
 > GKD 选择器校验需要 Node.js 22 及以上版本。
@@ -191,11 +192,11 @@ python -m http.server 8000 -d dist
 http://<你的电脑局域网IP>:8000/gkd.json5
 ```
 
-## 8. 推送源码到 GitHub
+## 8. 发布到 GitHub
 
 本仓库约定 `dist/` 由 GitHub Actions 管理。本地调试产生的 `dist` 修改，不要直接提交。
 
-可以让 AI 使用项目内 skill 处理提交：
+可以让 AI 使用项目内 skill 处理提交和发布：
 
 ```txt
 把代码推送到 GitHub
@@ -214,8 +215,20 @@ AI 应该执行的流程：
 9. 运行 `pnpm run check`。
 10. 根据实际修改生成 commit message。
 11. 执行 `git commit` 和 `git push origin main`。
+12. 查看本次提交的文件，例如 `git diff --name-only HEAD~1 HEAD`。
+13. 只有本次提交包含 `src/**` 变更时，才使用 `gh workflow run build_release --ref main` 触发发布 Action。
+14. 如果触发了 Action，使用 `gh run watch <run-id> --exit-status` 等待完成。
+15. 发布成功后执行 `git pull --ff-only`，同步 Action 生成的 `dist` 提交、tag 和 release。
 
-手动执行也可以：
+`build_release` 会运行 `pnpm run build`，订阅产物来自 `src/subscription.ts` 及其导入的 `src/**` 文件。只修改 README、项目内 skills、文档或其他非 `src/` 文件时，不需要重新构建 GKD 订阅。
+
+如果 GitHub CLI 未登录或没有 `workflow` 权限，AI 会停止并提示你到 GitHub 页面手动运行：
+
+```txt
+Actions -> build_release -> Run workflow
+```
+
+手动完整执行也可以：
 
 ```shell
 git restore -- dist
@@ -225,17 +238,18 @@ git add .
 pnpm run check
 git commit -m "feat: add gkd rules"
 git push origin main
+git diff --name-only HEAD~1 HEAD
+gh workflow run build_release --ref main
+gh run list --workflow build_release --limit 3
+gh run watch <run-id> --exit-status
+git pull --ff-only
 ```
 
-## 9. 运行 GitHub Actions 发布订阅
+如果 `git diff --name-only HEAD~1 HEAD` 没有输出 `src/` 开头的文件，跳过后面的 `gh workflow run ...`、`gh run watch ...` 和发布后的 `git pull --ff-only`。
 
-推送源码后，在你的 GitHub 仓库中打开：
+## 9. 发布结果
 
-```txt
-Actions -> build_release -> Run workflow
-```
-
-这个 workflow 会：
+`build_release` workflow 会：
 
 1. 安装依赖。
 2. 运行 `pnpm run build`。
@@ -244,6 +258,8 @@ Actions -> build_release -> Run workflow
 5. 更新 `dist/README.md` 和 `dist/CHANGELOG.md`。
 6. 将构建结果提交回仓库。
 7. 创建 tag 和 release。
+
+发布完成后，本地仓库应该已经通过 `git pull --ff-only` 同步到最新版本，`git status --short` 应为空。
 
 订阅地址格式：
 
