@@ -122,14 +122,14 @@ screenshot.png
 
 ```txt
 使用项目内 skill .codex/skills/gkd-snapshot-rule，
-根据 snapshots/示例.zip 生成或更新对应的 GKD 规则。
+根据 snapshots 下的 zip 文件 生成或更新对应的 GKD 规则。
 完成后运行 pnpm run check。
 ```
 
 更短的提示词也可以：
 
 ```txt
-根据 snapshots/示例.zip 创建 GKD 规则
+根据 snapshots 下的 zip 文件创建 GKD 规则
 ```
 
 AI 应该完成这些事：
