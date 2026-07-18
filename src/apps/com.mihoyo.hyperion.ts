@@ -8,7 +8,10 @@ export default defineGkdApp({
       key: 1,
       name: '开屏广告',
       activityIds: 'com.mihoyo.hyperion.splash.SplashActivity',
-      rules: '[vid="mSplashBtJump"][text^="跳过"]',
+      fastQuery: true,
+      matchTime: 10000,
+      actionMaximum: 1,
+      rules: '[vid="mSplashBtJump"][text^="跳过"][visibleToUser=true]',
     },
   ],
 });

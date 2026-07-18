@@ -8,7 +8,10 @@ export default defineGkdApp({
       key: 1,
       name: '开屏广告',
       activityIds: 'com.zhihu.android.app.ui.activity.LauncherActivity',
-      rules: '[vid="btn_skip"][text*="跳过"]',
+      fastQuery: true,
+      matchTime: 10000,
+      actionMaximum: 1,
+      rules: '[vid="btn_skip"][text*="跳过"][visibleToUser=true]',
     },
   ],
 });

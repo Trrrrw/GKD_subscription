@@ -8,7 +8,10 @@ export default defineGkdApp({
       key: 1,
       name: '开屏广告',
       activityIds: 'com.chaoxing.mobile.activity.SplashActivity',
-      rules: '[vid="jump_view"]',
+      fastQuery: true,
+      matchTime: 10000,
+      actionMaximum: 1,
+      rules: '[vid="jump_view"][visibleToUser=true]',
     },
   ],
 });
